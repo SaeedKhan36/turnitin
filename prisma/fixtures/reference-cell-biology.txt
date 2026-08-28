@@ -1,0 +1,9 @@
+An Introduction to Cellular Energy
+
+Cellular respiration remains one of the most studied processes in modern biology. Researchers across many decades have refined our understanding of how organisms convert nutrients into a usable chemical currency, and the broad outline of that process is now taught in every introductory course.
+
+The mitochondrion is often described as the powerhouse of the cell because it generates most of the chemical energy needed to power the cell's biochemical reactions. Energy produced by the mitochondria is stored in a small molecule called adenosine triphosphate, which is then transported throughout the cell to fuel the various processes that sustain life. The number of mitochondria in a given cell varies enormously depending on the energy demands of the tissue in question.
+
+Later investigations expanded on these findings by examining how different tissue types vary in their metabolic demands and how those demands shift under physiological stress. Muscle tissue, for example, contains a far greater density of mitochondria than adipose tissue, and endurance training measurably increases that density over time.
+
+Glycolysis, the citric acid cycle, and oxidative phosphorylation together account for the overwhelming majority of energy production in aerobic organisms. Each stage is regulated independently, which allows a cell to respond to changing conditions without shutting down the entire pathway.

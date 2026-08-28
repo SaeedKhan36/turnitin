@@ -1,0 +1,252 @@
+// Prisma 7 + Neon serverless Postgres via driver adapter.
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Better Auth tables. Field names must stay camelCase — Better Auth's Prisma
+// adapter maps to them by name.
+// ---------------------------------------------------------------------------
+
+enum Role {
+  INSTRUCTOR
+  STUDENT
+}
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  role Role @default(STUDENT)
+
+  sessions    Session[]
+  accounts    Account[]
+  taughtClasses Class[]      @relation("ClassInstructor")
+  enrollments Enrollment[]
+  submissions Submission[]
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  // Required by Better Auth 1.7+; identifies the credential/OAuth issuer.
+  issuer                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([issuer, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@index([identifier])
+}
+
+// ---------------------------------------------------------------------------
+// Teaching structure
+// ---------------------------------------------------------------------------
+
+model Class {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  joinCode    String   @unique
+  createdAt   DateTime @default(now())
+
+  instructorId String
+  instructor   User   @relation("ClassInstructor", fields: [instructorId], references: [id], onDelete: Cascade)
+
+  enrollments Enrollment[]
+  assignments Assignment[]
+
+  @@index([instructorId])
+}
+
+model Enrollment {
+  id       String   @id @default(cuid())
+  joinedAt DateTime @default(now())
+
+  userId  String
+  classId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class   Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, classId])
+  @@index([classId])
+}
+
+model Assignment {
+  id           String    @id @default(cuid())
+  title        String
+  instructions String?
+  dueAt        DateTime?
+  createdAt    DateTime  @default(now())
+
+  // Report settings, applied when spans are filtered.
+  excludeQuotes       Boolean @default(true)
+  excludeBibliography Boolean @default(true)
+  minMatchWords       Int     @default(8)
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  submissions Submission[]
+
+  @@index([classId])
+}
+
+// ---------------------------------------------------------------------------
+// Submissions and similarity reports
+// ---------------------------------------------------------------------------
+
+enum SubmissionStatus {
+  UPLOADED
+  EXTRACTING
+  INDEXING
+  COMPARING
+  READY
+  FAILED
+}
+
+model Submission {
+  id        String   @id @default(cuid())
+  filename  String
+  mimeType  String
+  sizeBytes Int
+  // Storage keys, not file contents. Original upload + extracted plain text.
+  storageKey String
+  textKey    String?
+  charCount  Int?
+  pageCount  Int?
+  wordCount  Int?
+
+  status SubmissionStatus @default(UPLOADED)
+  error  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Reference documents seeded into the corpus have no assignment or student.
+  assignmentId String?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String?
+  student      User?       @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  // A reference doc is matchable but never itself reported on.
+  isReference Boolean @default(false)
+  sourceLabel String?
+
+  fingerprints Fingerprint[]
+  report       Report?
+  matchedIn    MatchSource[] @relation("MatchedSubmission")
+
+  @@index([assignmentId])
+  @@index([studentId])
+  @@index([status])
+}
+
+/// Winnowed k-gram fingerprints. `hash` is a signed 32-bit FNV-1a value; 32-bit
+/// collisions are expected at corpus scale and are filtered out later by
+/// verifying candidate spans against the real token text in compare.ts.
+model Fingerprint {
+  id       BigInt @id @default(autoincrement())
+  hash     Int
+  position Int
+
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([hash])
+  @@index([submissionId, position])
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  similarityScore Float    @default(0)
+  matchedChars    Int      @default(0)
+  totalChars      Int      @default(0)
+  generatedAt     DateTime @default(now())
+
+  // Heuristic writing-style signal. Never treated as proof of anything.
+  aiScore      Float?
+  aiConfidence String?
+
+  submissionId String     @unique
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  sources MatchSource[]
+}
+
+model MatchSource {
+  id           String @id @default(cuid())
+  score        Float
+  matchedChars Int
+
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  matchedSubmissionId String
+  matchedSubmission   Submission @relation("MatchedSubmission", fields: [matchedSubmissionId], references: [id], onDelete: Cascade)
+
+  spans MatchSpan[]
+
+  @@index([reportId])
+}
+
+model MatchSpan {
+  id String @id @default(cuid())
+  // Character offsets into the *original* extracted text of each document.
+  startChar        Int
+  endChar          Int
+  matchedStartChar Int
+  matchedEndChar   Int
+
+  sourceId String
+  source   MatchSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId])
+}

@@ -1,0 +1,7 @@
+Managed Retreat and the Limits of Hard Engineering
+
+Coastal erosion along the North Sea has accelerated markedly since the middle of the twentieth century. Sea defences built during earlier decades were designed around assumptions about storm frequency that no longer hold, and local authorities now face difficult decisions about managed retreat versus continued investment in hard engineering.
+
+The economic case for sea walls depends heavily on the value of the land behind them. Where that land supports dense settlement or critical infrastructure, the calculation is straightforward. Where it supports low-intensity agriculture, the same expenditure becomes far harder to justify, and several districts have begun planning for controlled inundation instead.
+
+Managed retreat is politically difficult in a way that engineering is not. A sea wall is visible evidence of action; a decision to allow a field to flood looks, to the people who farm it, like abandonment. Communicating the reasoning behind such decisions has proven at least as important as the technical analysis underpinning them.

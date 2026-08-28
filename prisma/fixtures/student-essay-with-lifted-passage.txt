@@ -1,0 +1,14 @@
+Energy Production in Living Cells
+Submitted for Biology 140
+
+In this essay I will examine how cells produce and manage their energy supply over the course of normal activity and under conditions of stress. The question matters because almost every other cellular process depends on a reliable supply of chemical energy.
+
+The mitochondrion is often described as the powerhouse of the cell because it generates most of the chemical energy needed to power the cell's biochemical reactions. Energy produced by the mitochondria is stored in a small molecule called adenosine triphosphate, which is then transported throughout the cell to fuel the various processes that sustain life. The number of mitochondria in a given cell varies enormously depending on the energy demands of the tissue in question.
+
+My own view is that the standard textbook framing understates how much variation exists between organisms. Comparative physiology offers a number of cases that do not fit the tidy diagram, and I think an introductory treatment would be improved by acknowledging them rather than deferring them to a later course.
+
+To take one example, certain deep-sea organisms operate at metabolic rates so low that the usual assumptions about mitochondrial density simply do not apply. Studying those cases first, rather than last, might give students a better sense of how much the general model is a generalisation.
+
+References
+
+Smith, J. (2019). Comparative Cellular Metabolism. University Press.
