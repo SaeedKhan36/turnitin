@@ -129,13 +129,13 @@ Authentication is **Better Auth** (`src/server/auth.ts`). It owns the `User`,
 `Session`, and `Account` tables in `schema.prisma` and carries the
 `INSTRUCTOR`/`STUDENT` role that every tRPC procedure authorises against.
 
-Clerk keys are parked, commented out, in `.env`. Nothing reads them. Swapping to
-Clerk is not a drop-in: Clerk would own identity externally, so `User` would
-become a local mirror keyed by Clerk user id, the `Account`/`Session` tables and
-the sign-up/login pages would go away, `role` would move to Clerk metadata (or
-stay local and be looked up per request), and the tRPC context would build from
-a Clerk session instead of `auth.api.getSession`. Worth doing deliberately, not
-by adding an env var.
+This is a settled decision, not a default: Better Auth stays. Moving to a
+hosted provider would not be a drop-in swap — an external provider owns identity,
+so `User` becomes a local mirror keyed by their user id, the `Account`/`Session`
+tables and the sign-up/login pages go away, `role` moves to provider metadata or
+stays local and is looked up per request, and the tRPC context builds from their
+session instead of `auth.api.getSession`. Worth doing deliberately, if ever, and
+never by adding an env var.
 
 ## Testing
 
